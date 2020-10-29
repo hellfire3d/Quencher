@@ -38,14 +38,19 @@ public class MainApp {
             };
         */
         
+        /*
         String[] args = {"compress",
-            "E:\\Emulator\\rpcs3-v0.0.12-11059-b9988523_win64\\costume\\raw.data",
-            "E:\\Emulator\\rpcs3-v0.0.12-11059-b9988523_win64\\costume\\finished\\evel_kinevel_cape_nk.mol",
-            "MSHb", //header
-            "00 00 01 32", //rev number
+            "E:\\Emulator\\rpcs3-v0.0.12-11059-b9988523_win64\\costume\\pal_usa_alley_1119.plan.out",
+            "E:\\Emulator\\rpcs3-v0.0.12-11059-b9988523_win64\\costume\\finished\\pal_usa_alley_1119.plan",
+            "PLNb", //header
+            "00 00 01 DD", //rev number
             "01 00 01 00", //extra header data
-            "00 00 00 01" // count of deps
-          + "02 " + "00 00 0E 50" + "00 00 00 07" //dep example, copy this line for more
+            "00 00 00 05 02 13 37 67 5C 00 00 00 02 02 13 37 67 5D 00 00 00 01 02 13 37 AF 33 00 00 00 07 02 00 00 26 94 00 00 00 02 02 00 00 26 95 00 00 00 02" //dep example, copy this line for more line for more
+        };
+        */
+        String[] args = {"build_farc",
+            "E:\\Emulator\\rpcs3-v0.0.12-11059-b9988523_win64\\costume\\finished",
+            "E:\\Emulator\\rpcs3-v0.0.12-11059-b9988523_win64\\costume\\finished.farc"
         };
         
         /*Z
@@ -327,12 +332,34 @@ public class MainApp {
                     }
                     
                 }
+            case "build_farc":
+                if (args.length==3) {
+                    
+                    File folderSrc = new File(args[1]);
+                    File outDest = new File(args[2]);
+                    
+                    if (folderSrc.exists() && folderSrc.isDirectory()) {
+                        if (build_farc(folderSrc, outDest)) {
+                            break;
+                        } else {
+                            System.out.println("error");
+                        }
+                    } else {
+                        System.out.println("file not found");
+                        break;
+                    }
+                    
+                }
             default:
                 System.out.println("usage: quencher port farc map farc_from map_from guid/hash farc_out map_out");
                 System.out.println("quencher patch_map map map_from map_out");
                 System.out.println("quencher patch_farc farc farc_from farc_out");
         }
         
+    }
+    
+    public static boolean build_farc(File folderSrc, File outDest) {
+        return true;
     }
     
     public static boolean compress(File fileSrc, File outDest, String header, byte[] revnumber, byte[] headerstuff, byte[] footer) {
