@@ -359,6 +359,53 @@ public class MainApp {
     }
     
     public static boolean build_farc(File folderSrc, File outDest) {
+        File dir = folderSrc;
+        File[] directoryListing = dir.listFiles();
+        if (directoryListing != null) {
+
+            try {
+                
+            ArrayList<byte[]> sha1sList = new ArrayList<byte[]>();
+            ArrayList<Long> offsetsList = new ArrayList<Long>();
+            ArrayList<Long> sizesList = new ArrayList<Long>();
+            
+            FileOutputStream fos = new FileOutputStream(outDest);
+            long offset = 0;
+
+            for (File child : directoryListing) {
+                if (child.isFile()) {
+                    System.out.print(child.getName() + ": ");
+                    sha1sList.add(MiscUtils.sha1FromFile(child));
+                    System.out.print(MiscUtils.byteArrayToHexString(MiscUtils.sha1FromFile(child)) + ", " + offset + ", " + child.length() + "\n");
+                    sizesList.add(child.length());
+                    offsetsList.add(offset);
+                    offset+=child.length();
+                    
+                    FileInputStream fis = new FileInputStream(child);
+
+                    byte[] buffer = new byte[1024];
+                    int noOfBytes = 0;
+
+                    while ((noOfBytes = fis.read(buffer)) != -1) {
+                        fos.write(buffer, 0, noOfBytes);
+                    }
+                    
+                }
+            }
+            int i=0;
+            for (byte[] bytes : sha1sList) {
+                fos.write(bytes);
+                fos.write(MiscUtils.longToByteArray(offsetsList.get(i)));
+                fos.write(MiscUtils.longToByteArray(sizesList.get(i)));
+                i++;
+            }
+            fos.write(MiscUtils.longToByteArray(sha1sList.size()));
+            fos.write(new byte[]{0x46, 0x41, 0x52, 0x43});
+            fos.close();
+            } catch (Exception ex) {};
+        } else {
+
+        }
         return true;
     }
     
