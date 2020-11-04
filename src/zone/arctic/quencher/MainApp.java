@@ -48,9 +48,18 @@ public class MainApp {
             "00 00 00 05 02 13 37 67 5C 00 00 00 02 02 13 37 67 5D 00 00 00 01 02 13 37 AF 33 00 00 00 07 02 00 00 26 94 00 00 00 02 02 00 00 26 95 00 00 00 02" //dep example, copy this line for more line for more
         };
         */
+        
+        /*
         String[] args = {"build_farc",
             "E:\\Emulator\\rpcs3-v0.0.12-11059-b9988523_win64\\costume\\finished",
             "E:\\Emulator\\rpcs3-v0.0.12-11059-b9988523_win64\\costume\\finished.farc"
+        };
+        */
+        
+        String[] args = {"update_map_with_files",
+            "E:\\Emulator\\rpcs3-v0.0.12-11059-b9988523_win64\\costume\\finished",
+            "E:\\Emulator\\rpcs3-v0.0.12-11059-b9988523_win64\\dev_hdd0\\game\\NPUA80472\\USRDIR\\output\\brg_patch.map",
+            "E:\\Emulator\\rpcs3-v0.0.12-11059-b9988523_win64\\dev_hdd0\\game\\NPUA80472\\USRDIR\\output\\brg_patch2.map"
         };
         
         /*Z
@@ -350,6 +359,26 @@ public class MainApp {
                     }
                     
                 }
+            case "update_map_with_files":
+                if (args.length==4) {
+                    
+                    File folderSrc = new File(args[1]);
+                    File mapSrc = new File(args[2]);
+                    File mapDest = new File(args[3]);
+                    
+                    
+                    if (folderSrc.exists() && folderSrc.isDirectory()) {
+                        if (update_map_with_files(folderSrc, mapSrc, mapDest)) {
+                            break;
+                        } else {
+                            System.out.println("error");
+                        }
+                    } else {
+                        System.out.println("file not found");
+                        break;
+                    }
+                    
+                }
             default:
                 System.out.println("usage: quencher port farc map farc_from map_from guid/hash farc_out map_out");
                 System.out.println("quencher patch_map map map_from map_out");
@@ -402,6 +431,49 @@ public class MainApp {
             fos.write(MiscUtils.longToByteArray(sha1sList.size()));
             fos.write(new byte[]{0x46, 0x41, 0x52, 0x43});
             fos.close();
+            } catch (Exception ex) {};
+        } else {
+
+        }
+        return true;
+    }
+    
+    public static boolean update_map_with_files(File folderSrc, File mapSrc, File mapDest) {
+        File dir = folderSrc;
+        
+        MapFile mapSource = parseMapFile(mapSrc);
+        
+        File[] directoryListing = dir.listFiles();
+        
+        if (directoryListing != null) {
+
+            try {
+            ArrayList<String> filenamesList = new ArrayList<String>();
+            ArrayList<byte[]> sha1sList = new ArrayList<byte[]>();
+            ArrayList<Long> sizesList = new ArrayList<Long>();
+
+            for (File child : directoryListing) {
+                if (child.isFile()) {
+                    System.out.print(child.getName() + ": ");
+                    filenamesList.add(child.getName());
+                    sha1sList.add(MiscUtils.sha1FromFile(child));
+                    System.out.print(MiscUtils.byteArrayToHexString(MiscUtils.sha1FromFile(child)) + ", " + child.length() + "\n");
+                    sizesList.add(child.length());
+                }
+            }
+            for (MapEntry entry : mapSource.entries) {
+                int i = 0;
+                for (String name : filenamesList) {
+                    if (entry.getPath().contains(name)) {
+                        System.out.println("Found " + entry.getPath() + " in " + name + ", setting sha1 from " + MiscUtils.byteArrayToHexString(entry.getHash()) + " to " + MiscUtils.byteArrayToHexString(sha1sList.get(i)));
+                        entry.setHash(sha1sList.get(i));
+                        entry.setSize(Integer.parseInt(sizesList.get(i).toString()));
+                    }
+                    i++;
+                }
+                
+            }
+            exportMapToFile(mapSource, mapDest);
             } catch (Exception ex) {};
         } else {
 
